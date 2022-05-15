@@ -7,8 +7,10 @@ double** dot(double*, double*, int, int, int);
 double** add(double**, double*, int, int);
 double** sigmoid(double**, int, int);
 double** softmax(double*, int, int);
+double** relu(double*, int, int);
 double** identity_function(double**);
-double max(double*, int, int);
+double arrMax(double*, int, int);
+double** createArray(int, int);
 
 double W1[2][3] = {{0.1, 0.3, 0.5}, {0.2, 0.4, 0.6}};
 double b1[1][3] = {0.1, 0.2, 0.3};
@@ -35,11 +37,7 @@ double** forward(double* x){
 } 
 
 double** dot(double* x, double* W, int l, int n, int m){//(x, W1, x[n][], x[][n], W1[][n])
-    double **result; // l행 m열로 선언할거임
-
-    result = calloc(sizeof(double*), l);
-    result[0] = calloc(sizeof(double), l * m);
-    for (int i = 1; i < l; ++i) result[i] = result[i - 1] + m;
+    double **result = createArray(l, m);
 
     for(int i = 0; i < l; i++){
         for(int j = 0; j < m; j++){ 
@@ -53,11 +51,7 @@ double** dot(double* x, double* W, int l, int n, int m){//(x, W1, x[n][], x[][n]
 }
 
 double** add(double** a, double* b, int x, int y){
-   double **result; // x행 y열로 선언할거임
-
-    result = calloc(sizeof(double*), x);
-    result[0] = calloc(sizeof(double), x * y);
-    for (int i = 1; i < x; ++i) result[i] = result[i - 1] + y;
+   double **result = createArray(x, y);
 
     for(int n = 0; n < x; n++){
         for(int m = 0; m < y; m++){
@@ -69,11 +63,7 @@ double** add(double** a, double* b, int x, int y){
 }
 
 double** sigmoid(double** x, int l, int m){
-    double **result; // l행 m열로 선언할거임
-
-    result = calloc(sizeof(double*), l);
-    result[0] = calloc(sizeof(double), l * m);
-    for (int i = 1; i < l; ++i) result[i] = result[i - 1] + m;
+    double **result = createArray(l, m);
 
     for(int i = 0; i < l; i++){
         for(int j = 0; j < m; j++){
@@ -85,27 +75,35 @@ double** sigmoid(double** x, int l, int m){
 }
 
 double** softmax(double* x, int l, int m){
-    double **result; // l행 m열로 선언할거임
+    double **result = createArray(l, m);
 
-    result = calloc(sizeof(double*), l);
-    result[0] = calloc(sizeof(double), l * m);
-    for (int i = 1; i < l; ++i) result[i] = result[i - 1] + m;
-
-    double arrMax = max(x, l, m);
+    double Max = arrMax(x, l, m);
     double sumExpX = 0;
 
     for(int i = 0; i < l; i++){
         for(int j = 0; j < m; j++){
-            sumExpX += exp(x[j+i*m] - arrMax);
+            sumExpX += exp(x[j+i*m] - Max);
         }
     }
 
     for(int i = 0; i < l; i++){
         for(int j = 0; j < m; j++){
-            result[i][j] = exp(x[j+i*m] - arrMax) / sumExpX;
+            result[i][j] = exp(x[j+i*m] - Max) / sumExpX;
         }
     }
-    
+
+    return result;
+}
+
+double** relu(double* x, int l, int m){
+    double **result = createArray(l, m);
+
+    for(int i = 0; i < l; i++){
+        for(int j = 0; j < m; j++){
+            result[i][j] = x[j+i*m] > 0 ? x[j+i*m] : 0;
+        }
+    }
+
     return result;
 }
 
@@ -113,7 +111,17 @@ double** identity_function(double** x){
     return x;
 }
 
-double max(double* x, int l, int m){
+double** createArray(int l, int m){
+    double **result; // l행 m열로 선언할거임
+
+    result = calloc(sizeof(double*), l);
+    result[0] = calloc(sizeof(double), l * m);
+    for (int i = 1; i < l; ++i) result[i] = result[i - 1] + m;
+
+    return result;
+}
+
+double arrMax(double* x, int l, int m){
     double max = x[0];
 
     for(int i = 0; i < l; i++){
